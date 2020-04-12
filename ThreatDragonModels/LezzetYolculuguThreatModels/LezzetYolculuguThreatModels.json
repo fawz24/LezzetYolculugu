@@ -568,6 +568,31 @@
           "height": 590,
           "width": 1787
         }
+      },
+      {
+        "title": "Sign up",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 1
+      },
+      {
+        "title": "Home",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 2
+      },
+      {
+        "title": "View Recipe",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 3
+      },
+      {
+        "title": "Add Recipe",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 4
+      },
+      {
+        "title": "Edit Recipe",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 5
       }
     ]
   }
