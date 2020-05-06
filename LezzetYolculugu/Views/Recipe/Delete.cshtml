@@ -1,0 +1,189 @@
+﻿@model LezzetYolculugu.Models.Recipe
+
+@{
+    ViewData["Title"] = "Delete";
+}
+
+@section Styles{
+    <style>
+        .ingredient-list {
+            list-style: none;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 0;
+            margin: 0;
+        }
+
+        .recipe-content {
+            background-color: rgba(206, 206, 206, 0.20);
+            border-radius: 10px;
+            padding: 0.75rem;
+        }
+
+        .comment {
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .comment-header {
+            padding: 0;
+            margin: 0 0 -0.7rem;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .delete-comment {
+            width: 3rem;
+        }
+
+        .delete-comment-link, .delete-comment-link:hover, .delete-comment-link:active, .delete-comment-link:link, .delete-comment-link:visited {
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: #565656;
+            margin: 3px 0;
+        }
+
+        .comment-content {
+            border-radius: 10px;
+            background-color: rgba(206, 206, 206, 0.20);
+            margin: 0 -5px;
+            padding: 5px;
+        }
+    </style>
+}
+
+<h2>@Model.Title.ToUpper()</h2>
+<pre><i>Yazar</i>: @Model.Author.Name @Model.Author.Surname
+<i>Paylaşım tarihi</i>: @Model.Date</pre>
+<div>
+    @if (User.Identity.IsAuthenticated && (User.Identity.Name == Model.Author.Email || User.IsInRole(LezzetYolculugu.Data.RolesRegistry.Admin)))
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id">Güncelle</a>
+        <span> | </span>
+    }
+    <a asp-action="Index">Ana sayfaya dön</a>
+</div>
+<h4 class="mt-3">Malzeler</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col" class="font-italic">Ad</th>
+            <th scope="col" class="font-italic">Miktar</th>
+            <th scope="col" class="font-italic">Ünite</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ingredient in Model.Ingredients)
+        {
+            <tr>
+                <td>@ingredient.Name</td>
+                <td>@ingredient.Quantity</td>
+                <td>@ingredient.Unit.Name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+<h4 class="mt-3">Tarife</h4>
+<p class="recipe-content">@Model.Detail</p>
+<h4 class="mt-3">Yorumlar</h4>
+<div id="comments">
+</div>
+@if (User.Identity.IsAuthenticated && (User.Identity.Name == Model.Author.Email || User.IsInRole(LezzetYolculugu.Data.RolesRegistry.Admin)))
+{
+    <h4>Bu yemek tarifesini silmek istiyor musunuz?</h4>
+    <form asp-action="Delete" asp-controller="Recipe">
+        <input type="hidden" asp-for="Id" />
+        <input type="submit" value="Sil" class="btn btn-danger" />
+    </form>
+}
+
+@section Scripts {
+    <script>
+        var currentUser = "@User.Identity.Name";
+        var isUserAdmin = "@User.IsInRole(LezzetYolculugu.Data.RolesRegistry.Admin)";
+        $(document).ready(function () {
+            $.getJSON({
+                url: '/api/recipes/@Model.Id/comments',
+                success: function (data) {
+                    console.log(data);
+                    var commentsDiv = $('#comments');
+                    for (item of data) {
+                        var commentDiv = htmlComment(item.id, item.detail, item.date, item.authorName, item.authorSurname, item.authorEmail);
+                        commentsDiv.append(commentDiv);
+                    }
+                }
+            });
+
+            $('#create-comment-btn').click(createComment);
+        });
+
+        function htmlComment(id, detail, date, authorName, authorSurname, authorEmail) {
+            var commentDiv = $(`<div class="card recipe comment" id="comment-${id}">
+    <div class="comment-header">
+        <p class="comment-author"><i>Yazar</i>: ${authorName} ${authorSurname}</p>
+        <p class="comment-date"><i>Tarih</i>: ${date}</p>
+    </div>
+    <p class="comment-content">${detail}</p>
+    </div>`);
+            if (authorEmail == currentUser || isUserAdmin === "True") {
+                commentDiv.append($(`<a class="delete-comment-link" href="#comment-${id}"
+    onClick="deleteComment(${id})">Sil</a>`));
+    //            commentDiv.append($(`<button class="delete-comment btn btn-danger"
+    //onClick="deleteComment(${id})">Sil</button>`));
+            }
+            return commentDiv;
+        }
+
+        function error(message) {
+            alert(message);
+        }
+
+        function deleteComment(id) {
+            var errorMessage = "Yorum silinemedi!";
+            $.ajax({
+                url: `/api/comments/${id}`,
+                type: 'DELETE',
+                success: function (result) {
+                    if (result.deleted) {
+                        $(`#comment-${id}`).remove();
+                    }
+                    else {
+                        error(errorMessage);
+                    }
+                },
+                error: function () {
+                    error(errorMessage);
+                }
+            });
+        }
+
+        function createComment() {
+            var newComment = $('#new-comment').val();
+            var errorMessage = "Yorum oluşturulamadı!";
+            if (newComment) {
+                $.ajax({
+                    url: `/api/recipes/@Model.Id/comments/new`,
+                    type: 'POST',
+                    data: {
+                        Detail: newComment,
+                        RecipeId: @Model.Id
+                    },
+                    success: function (data) {
+                        if (data) {
+                            $('#new-comment').val("");
+                            var commentDiv = htmlComment(data.id, data.detail, data.date, data.authorName, data.authorSurname, data.authorEmail);
+                            var commentsDiv = $('#comments');
+                            commentsDiv.append(commentDiv);
+                        }
+                        else {
+                            error(errorMessage);
+                        }
+                    },
+                    error: function () {
+                        error(errorMessage);
+                    }
+                })
+            }
+        }
+    </script>
+}

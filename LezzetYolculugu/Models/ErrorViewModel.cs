@@ -1,6 +1,6 @@
 using System;
 
-namespace Project.Models
+namespace LezzetYolculugu.Models
 {
     public class ErrorViewModel
     {
