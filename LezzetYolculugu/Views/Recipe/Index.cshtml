@@ -1,0 +1,102 @@
+﻿@model LezzetYolculugu.Models.RecipeIndexViewModel
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+@section Styles {
+    <style>
+        .recipe {
+            margin: 2rem;
+            min-height: 6rem;
+            max-height: 10rem;
+        }
+
+        .recipe-title-link, .recipe-title-link:hover, .recipe-title-link:link, .recipe-title-link:visited, .recipe-title-link:active {
+            text-decoration: none;
+            color: black;
+        }
+
+        .index-container {
+            height: 100%;
+            display: grid;
+            grid-auto-flow: column;
+            grid-template-rows: 9fr 1fr;
+        }
+    </style>
+}
+
+<div class="index-container">
+    <div class="flex-grow-1">
+        @if (User.Identity.IsAuthenticated)
+        {
+            <p style="margin-left: 2rem;">
+                <a asp-action="Create">Yeni tarife oluştur</a>
+            </p>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <p class="text-danger">@ViewData["Error"]</p>
+        }
+        @if (ViewData["Error"] != null)
+        {
+            <p class="text-danger">@ViewData["Error"]</p>
+        }
+        @foreach (var recipe in Model.Recipes)
+        {
+            <a asp-action="Details" asp-controller="Recipe" asp-route-id="@recipe.Id" class="recipe-title-link">
+                <div class="card recipe">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <h5 class="card-title">@recipe.Title.ToUpper()</h5>
+                            <address><i>Yazar</i>: @recipe.Author.Name @recipe.Author.Surname <i>Tarih</i>: @recipe.Date</address>
+                        </div>
+                        <div class="card-text row">
+                            <div class="col-md-8">
+                                @{
+                                    var maxLength = 75;
+                                    var length = recipe.Detail.Length >= maxLength ? maxLength : recipe.Detail.Length;
+                                    var hyphens = recipe.Detail.Length > maxLength ? "..." : "";
+                                }
+                                <p class="card-text">Tarife</p>
+                                @Html.Raw("<pre class=\"card-text\">" + recipe.Detail.Substring(0, length) + hyphens + "</pre>")
+                            </div>
+                            <div class="col-md-4">
+                                <p class="card-text">Malzemeler</p>
+                                <ul style="list-style-position: inside;margin: 0;padding: 0;">
+                                    @foreach (var item in recipe.Ingredients.Select((ingredient, index) => new { index, ingredient }))
+                                    {
+                                        if (item.index >= 3)
+                                        {
+                                            <span>...</span>
+                                            break;
+                                        }
+                                        <li>
+                                            @item.ingredient.Name @item.ingredient.Quantity @item.ingredient.Unit.Name
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+    <nav aria-label="..." class="d-flex mt-auto justify-content-center">
+        <ul class="pagination">
+            <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                <a asp-action="Index" asp-route-id="@(Model.CurrentPage - 1)" class="page-link" tabindex="-1">Önceki</a>
+            </li>
+            @for (int i = 1; i <= Model.Pages; i++)
+            {
+                <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                    <a asp-action="Index" asp-route-id="@i" class="page-link">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.CurrentPage == Model.Pages ? "disabled" : "")">
+                <a asp-action="Index" asp-route-id="@(Model.CurrentPage + 1)" class="page-link" tabindex="+1">Sonraki</a>
+            </li>
+        </ul>
+    </nav>
+</div>
