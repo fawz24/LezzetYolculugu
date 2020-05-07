@@ -1192,11 +1192,6 @@
         }
       },
       {
-        "title": "Home",
-        "thumbnail": "./public/content/images/thumbnail.jpg",
-        "id": 2
-      },
-      {
         "title": "View Recipe",
         "thumbnail": "./public/content/images/thumbnail.jpg",
         "id": 3
