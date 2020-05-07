@@ -1192,11 +1192,6 @@
         }
       },
       {
-        "title": "View Recipe",
-        "thumbnail": "./public/content/images/thumbnail.jpg",
-        "id": 3
-      },
-      {
         "title": "Add Recipe",
         "thumbnail": "./public/content/images/thumbnail.jpg",
         "id": 4
