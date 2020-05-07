@@ -31,7 +31,7 @@
                   "status": "Open",
                   "severity": "Medium",
                   "type": "Information disclosure",
-                  "mitigation": "Filter user input",
+                  "mitigation": "Filter, escape, validate and encode user input",
                   "title": "Data leakage",
                   "description": "Input received from users can be vector of cross site scripting, SQL injection and many more injection type attacks."
                 }
