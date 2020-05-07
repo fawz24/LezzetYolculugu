@@ -25,16 +25,26 @@
               "angle": 0,
               "id": "9607bb2e-5273-4ad8-84eb-ce9f61cc394c",
               "z": 1,
-              "hasOpenThreats": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Information disclosure",
+                  "mitigation": "Filter user input",
+                  "title": "Data leakage",
+                  "description": "Input received from users can be vector of cross site scripting, SQL injection and many more injection type attacks."
+                }
+              ],
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasNoOpenThreats isInScope"
+                  "class": "element-shape hasOpenThreats isInScope"
                 },
                 "text": {
                   "text": "Web servlet"
                 },
                 ".element-text": {
-                  "class": "element-text hasNoOpenThreats isInScope"
+                  "class": "element-text hasOpenThreats isInScope"
                 }
               }
             },
@@ -51,16 +61,26 @@
               "angle": 0,
               "id": "4d2682ce-25b3-4428-92d7-bd7e56db2749",
               "z": 2,
-              "hasOpenThreats": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Spoofing",
+                  "title": "Identity theft",
+                  "description": "Raw input (no escaping, filtering, encoding) processed by the app and returned as is to the user creates risk of browser identity theft.",
+                  "mitigation": "Filter, escape and encode user input that should be sent back to the users"
+                }
+              ],
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasNoOpenThreats isInScope"
+                  "class": "element-shape hasOpenThreats isInScope"
                 },
                 "text": {
                   "text": "Anonymous user"
                 },
                 ".element-text": {
-                  "class": "element-text hasNoOpenThreats isInScope"
+                  "class": "element-text hasOpenThreats isInScope"
                 }
               }
             },
@@ -302,7 +322,7 @@
                   "type": "Information disclosure",
                   "title": "Data theft",
                   "description": "User passwords are saved as plain text which highly increase the likelihood of credential theft. Furthermore SQL injection attack can be conducted against the database.\nThis threat can lead to disastrous consequences such as the theft of all database records",
-                  "mitigation": "Password hashes should be saved instead of plain text.\nPrepared SQL statements or entity database context should be used."
+                  "mitigation": "Password hashes should be saved instead of plain text.\nPrepared SQL statements or entity database context should be used.\nFilter user input"
                 },
                 {
                   "status": "Open",
