@@ -14,4 +14,10 @@
             <a class="nav-link text-dark" asp-area="" asp-controller="Account" asp-action="SignOut">Sign Out</a>
         </li>
         <li class="nav-item d-flex align-items-center text-shadow-effect">@Context.User.Identity.Name</li>
+        @if(User.IsInRole(LezzetYolculugu.Data.RolesRegistry.Admin))
+        {
+            <li class="nav-item hover-highlight text-shadow-effect">
+                <a class="nav-link text-dark" asp-area="" asp-controller="Admin" asp-action="Index">Admin</a>
+            </li>
+        }
     }}

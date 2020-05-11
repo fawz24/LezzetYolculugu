@@ -31,66 +31,86 @@ namespace LezzetYolculugu.Controllers
         [Route("/Admin/Users")]
         public async Task<IActionResult> Index()
         {
-            return View(await dbContext.Users.ToListAsync());
+            var model = new List<AdminIndexViewModel>();
+            var users = await dbContext.Users.ToListAsync();
+            foreach (var user in users)
+            {
+                var modelItem = new AdminIndexViewModel()
+                {
+                    Id = user.Id,
+                    UserName = user.UserName,
+                    Name = user.Name,
+                    Surname = user.Surname,
+                    Email = user.Email,
+                    RegistrationDate = user.RegistrationDate
+                };
+                modelItem.IsAdmin = await userManager.IsInRoleAsync(user, RolesRegistry.Admin);
+                model.Add(modelItem);
+            }
+            return View(model);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> AddAdmin([FromBody] int userId)
+        [HttpGet]
+        public async Task<IActionResult> AddAdmin(int id)
         {
             try
             {
-                var user = dbContext.Users.First(u => u.Id == userId);
+                var user = dbContext.Users.First(u => u.Id == id);
                 if (!(await userManager.IsInRoleAsync(user, RolesRegistry.Admin)))
                 {
                     var result = await userManager.AddToRoleAsync(user, RolesRegistry.Admin);
                     if (result.Succeeded)
                     {
-                        ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcıya admin yetkisi tanımlandı.";
+                        TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcıya admin yetkisi tanımlandı.";
                     }
                     else
                     {
-                        ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcıya admin yetkisi tanımlanamadı.";
+                        TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcıya admin yetkisi tanımlanamadı.";
                     }
                 }
                 else
                 {
-                    ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcı admin yetkisine sahiptir.";
+                    TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcı admin yetkisine sahiptir.";
                 }
             }
             catch (Exception)
             {
-                ViewData["Error"] = $"Kullanıcı bulunamadı.";
+                TempData["Error"] = $"Kullanıcı bulunamadı.";
             }
             
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpPost]
-        public async Task<IActionResult> RemoveAdmin([FromBody] int userId)
+        [HttpGet]
+        public async Task<IActionResult> RemoveAdmin(int id)
         {
             try
             {
-                var user = dbContext.Users.First(u => u.Id == userId);
+                var user = dbContext.Users.First(u => u.Id == id);
                 if (await userManager.IsInRoleAsync(user, RolesRegistry.Admin))
                 {
                     var result = await userManager.RemoveFromRoleAsync(user, RolesRegistry.Admin);
                     if (result.Succeeded)
                     {
-                        ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcıdan admin yetkisi geri alındı.";
+                        TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcıdan admin yetkisi geri alındı.";
                     }
                     else
                     {
-                        ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcıdan admin yetkisi geri alınamadı.";
+                        TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcıdan admin yetkisi geri alınamadı.";
                     }
                 }
                 else
                 {
-                    ViewData["Error"] = $"Epostası '{user.Email}' olan kullanıcı admin yetkisine sahip değildir.";
+                    TempData["Error"] = $"Epostası '{user.Email}' olan kullanıcı admin yetkisine sahip değildir.";
+                }
+                if (!(await userManager.IsInRoleAsync(user, RolesRegistry.Normal)))
+                {
+                    var result = await userManager.AddToRoleAsync(user, RolesRegistry.Normal);
                 }
             }
             catch (Exception)
             {
-                ViewData["Error"] = $"Kullanıcı bulunamadı.";
+                TempData["Error"] = $"Kullanıcı bulunamadı.";
             }
             
             return RedirectToAction(nameof(Index));
@@ -108,78 +128,34 @@ namespace LezzetYolculugu.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> CreateUser([Bind("Email,Name,Surname,Password,IsAdmin")] AdminCreateUserViewModel user)
         {
-            try
+            if (ModelState.IsValid)
             {
-                // TODO: Add insert logic here
-                var dbUser = dbContext.Users.FirstOrDefault(u => u.Email == user.Email);
-                if (dbUser == null)
+                try
                 {
-                    var userCreation = await Helpers.CreateUser(user.Email, user.Name, user.Surname, user.Password, userManager);
-                    if (((IdentityResult)userCreation["Result"]).Succeeded)
+                    var dbUser = dbContext.Users.FirstOrDefault(u => u.Email == user.Email);
+                    if (dbUser == null)
                     {
-                        User newUser = (User)userCreation["User"];
-                        var identityResult = await userManager.AddToRoleAsync(newUser, RolesRegistry.Normal);
-                        if (user.IsAdmin)
+                        var userCreation = await Helpers.CreateUser(user.Email, user.Name, user.Surname, user.Password, userManager);
+                        if (((IdentityResult)userCreation["Result"]).Succeeded)
                         {
-                            identityResult = await userManager.AddToRoleAsync(newUser, RolesRegistry.Admin);
+                            User newUser = (User)userCreation["User"];
+                            IdentityResult identityResult = await userManager.AddToRoleAsync(newUser, RolesRegistry.Normal);
+                            if (user.IsAdmin)
+                            {
+                                identityResult = await userManager.AddToRoleAsync(newUser, RolesRegistry.Admin);
+                            }
                         }
+                        TempData["Message"] = "Yeni kullanıcı başırılı bir şekilde oluştutuldu.";
+                        return RedirectToAction(nameof(Index));
                     }
-                    ViewData["Message"] = "Yeni kullanıcı başırılı bir şekilde oluştutuldu.";
-                    return RedirectToAction(nameof(Index));
+                    ViewData["Error"] = "Bu eposta kullanılmaktadır.";
                 }
-                ViewData["Error"] = "Bu eposta kullanılmaktadır.";
-            }
-            catch
-            {
-                ViewData["Error"] = "Kullanıcı oluşturulamadı.";
+                catch
+                {
+                    ViewData["Error"] = "Kullanıcı oluşturulamadı.";
+                }
             }
             return View(user);
         }
-
-        //// GET: Admin/DeleteUser/5
-        //public async Task<ActionResult> DeleteUser(int id)
-        //{
-        //    var user = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == id);
-        //    if (user == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    return View(user);
-        //}
-
-        //// POST: Admin/DeleteUser/5
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public ActionResult Delete(int id, IFormCollection collection)
-        //{
-        //    try
-        //    {
-        //        // TODO: Add delete logic here
-
-        //        return RedirectToAction(nameof(Index));
-        //    }
-        //    catch
-        //    {
-        //        return View();
-        //    }
-        //}
-
-        //public IActionResult AddUnit()
-        //{
-
-            //dbContext.Roles.Add(new Role() { Name = RolesRegistry.Admin, NormalizedName = RolesRegistry.Admin.ToUpper() });
-            //dbContext.Roles.Add(new Role() { Name = RolesRegistry.Anonymous, NormalizedName = RolesRegistry.Anonymous.ToUpper() });
-            //dbContext.Roles.Add(new Role() { Name = RolesRegistry.Normal, NormalizedName = RolesRegistry.Normal.ToUpper() });
-            //dbContext.Units.Add(new Unit() { Name = "litre" });
-            //dbContext.Units.Add(new Unit() { Name = "gram" });
-            //dbContext.Units.Add(new Unit() { Name = "adet" });
-            //dbContext.Units.Add(new Unit() { Name = "dilim" });
-            //dbContext.Units.Add(new Unit() { Name = "demet" });
-            //dbContext.Units.Add(new Unit() { Name = "su bardağı" });
-            //dbContext.Units.Add(new Unit() { Name = "çay kaşığı" });
-            //dbContext.Units.Add(new Unit() { Name = "tatlı kaşığı" });
-            //dbContext.Units.Add(new Unit() { Name = "yemek kaşığı" });
-            //dbContext.SaveChanges();
-        //}
     }
 }

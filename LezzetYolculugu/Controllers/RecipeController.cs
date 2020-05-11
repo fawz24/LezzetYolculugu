@@ -126,7 +126,6 @@ WHERE Ingredients.RecipeId={id}";
         // GET: Recipe/Create
         public IActionResult Create()
         {
-            //SqlConnection connection = dbFactory.GetConnectionWithUser(User);
             CreateRecipeViewModel model = new CreateRecipeViewModel()
             {
                 Units = dbContext.Units.OrderBy(u => u.Name).ToList()
@@ -198,6 +197,14 @@ VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecip
                 TempData["Error"] = "Bu yemek tarifesini güncelleme yetkiniz bulunmamaktadır.";
                 return RedirectToAction(nameof(Details), new { id = id });
             }
+            recipe.Ingredients = await dbContext.Ingredients.Where(i => i.RecipeId == recipe.Id).ToListAsync();
+            var units = await dbContext.Units.OrderBy(u => u.Name).ToListAsync();
+            foreach (var ingredient in recipe.Ingredients)
+            {
+                ingredient.Unit = units.First(u => u.Id == ingredient.UnitId);
+            }
+            recipe.Author = await dbContext.Users.FirstAsync(u => u.Id == recipe.UserId);
+            ViewData["Units"] = units;
             return View(recipe);
         }
 
@@ -206,13 +213,13 @@ VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecip
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Detail,Date,UserId")] Recipe recipe)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Title,Detail,Date,UserId,Ingredients")] Recipe recipe)
         {
             if (id != recipe.Id)
             {
                 return NotFound();
             }
-
+            var units = await dbContext.Units.OrderBy(u => u.Name).ToListAsync();
             if (ModelState.IsValid)
             {
                 if (!User.IsInRole(RolesRegistry.Admin) && recipe.UserId != Helpers.GetSessionUser(dbContext, User).Id)
@@ -223,13 +230,11 @@ VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecip
 
                 var connection = dbFactory.GetConnectionWithUser(User);
                 string query = $@"UPDATE Recipes
-SET Title={recipe.Title}, Detail={recipe.Detail}
+SET Title='{recipe.Title}', Detail='{recipe.Detail}'
 WHERE Id={recipe.Id};";
                 SqlCommand command = new SqlCommand(query, connection);
                 try
                 {
-                    //dbContext.Update(recipe);
-                    //await dbContext.SaveChangesAsync();
                     await command.ExecuteNonQueryAsync();
                 }
                 catch(System.Data.Common.DbException e)
@@ -240,37 +245,54 @@ WHERE Id={recipe.Id};";
                     }
                     goto error;
                 }
-                //catch (DbUpdateConcurrencyException)
-                //{
-                //    if (!RecipeExists(recipe.Id))
-                //    {
-                //        return NotFound();
-                //    }
-                //    else
-                //    {
-                //        throw;
-                //    }
-                //}
-                foreach (var ingredient in recipe.Ingredients)
+                var ingredients = await dbContext.Ingredients.Where(i => i.RecipeId == recipe.Id).ToListAsync();
+                foreach (var ingredient in ingredients)
                 {
-                    query = $@"UPDATE Ingredients
-SET Name={ingredient.Name}, Quantity={ingredient.Quantity}, UnitId={ingredient.UnitId}
-WHERE Id={ingredient.Id} AND RecipeId={recipe.Id};";
-                    command = new SqlCommand(query, connection);
-                    try
+                    if (recipe.Ingredients.FirstOrDefault(i => i.Id == ingredient.Id) == null)
                     {
-                        await command.ExecuteNonQueryAsync();
-                    }
-                    catch (System.Data.Common.DbException e)
-                    {
-                        TempData["IngredientError"] = "Bazı malzemeler güncellenemedi.";
+                        dbContext.Ingredients.Remove(ingredient);
+                        await dbContext.SaveChangesAsync();
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                foreach (var ingredient in recipe.Ingredients)
+                {
+                    if (ingredient == null || ingredient.Id == 0)
+                    {
+                        query = $@"INSERT INTO Ingredients(Name,Quantity,UnitId,RecipeId)
+VALUES('{ingredient.Name}',{ingredient.Quantity},{ingredient.UnitId},{recipe.Id});";
+                        command = new SqlCommand(query, connection);
+                        try
+                        {
+                            await command.ExecuteNonQueryAsync();
+                        }
+                        catch (System.Data.Common.DbException e)
+                        {
+                            TempData["IngredientError"] = "Bazı yeni malzemeler kaydedilemedi.";
+                        }
+                    }
+                    else
+                    {
+                        query = $@"UPDATE Ingredients
+SET Name='{ingredient.Name}', Quantity={ingredient.Quantity}, UnitId={ingredient.UnitId}
+WHERE Id={ingredient.Id} AND RecipeId={recipe.Id};";
+                        command = new SqlCommand(query, connection);
+                        try
+                        {
+                            await command.ExecuteNonQueryAsync();
+                        }
+                        catch (System.Data.Common.DbException e)
+                        {
+                            TempData["IngredientError"] = "Bazı malzemeler güncellenemedi.";
+                        }
+                    }
+                }
+                return RedirectToAction(nameof(Details), new { id = id });
             }
             error:
             ViewData["Error"] = "Yemek tarifesi güncellenemedi. Bilgileri kontrol ediniz.";
             ViewData["UserId"] = new SelectList(dbContext.Users, "Id", "Id", recipe.UserId);
+            ViewData["Units"] = units;
+            recipe.Author = await dbContext.Users.FirstAsync(u => u.Id == recipe.UserId);
             return View(recipe);
         }
 
@@ -299,6 +321,7 @@ WHERE Id={ingredient.Id} AND RecipeId={recipe.Id};";
             {
                 ingredient.Unit = units.First(u => u.Id == ingredient.UnitId);
             }
+            recipe.Author = await dbContext.Users.FirstAsync(u => u.Id == recipe.UserId);
             return View(recipe);
         }
 
