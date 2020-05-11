@@ -6,21 +6,19 @@ using System.Threading.Tasks;
 
 namespace LezzetYolculugu.Models
 {
-    public class AdminCreateUserViewModel
+    public class AdminIndexViewModel
     {
-        [Required]
-        [Display(Name="Eposta")]
-        public string Email { get; set; }
-        [Required]
+        public int Id { get; set; }
+        [Display(Name="Kullanıcı adı")]
+        public string UserName { get; set; }
         [Display(Name = "Ad")]
         public string Name { get; set; }
-        [Required]
         [Display(Name = "Soyad")]
         public string Surname { get; set; }
-        [Required]
-        [Display(Name = "Şifre")]
-        public string Password { get; set; }
-        [Required]
+        [Display(Name = "Eposta")]
+        public string Email { get; set; }
+        [Display(Name = "Kayıt tarihi")]
+        public DateTime RegistrationDate { get; set; }
         [Display(Name = "Admin mi?")]
         public bool IsAdmin { get; set; }
     }

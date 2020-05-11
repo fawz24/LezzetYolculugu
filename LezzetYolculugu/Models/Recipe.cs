@@ -14,11 +14,14 @@ namespace LezzetYolculugu.Models
         public string Detail { get; set; }
         [Display(Name = "Tarih")]
         public DateTime Date { get; set; }
+        [Display(Name = "Yazar ID")]
         public int UserId { get; set; }
 
         [Display(Name = "Yazar")]
         public virtual User Author { get; set; }
+        [Display(Name = "Yorumlar")]
         public virtual ICollection<Comment> Comments { get; set; }
-        public ICollection<Ingredient> Ingredients { get; set; }
+        [Display(Name = "Malzemeler")]
+        public IList<Ingredient> Ingredients { get; set; }
     }
 }

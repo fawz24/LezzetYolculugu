@@ -47,8 +47,6 @@ namespace LezzetYolculugu.Controllers
             try
             {
                 var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
-                //var passwordHash = Helpers.EncodePassword(data.Password);
-                //var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email='{data.Email}' AND Password='{passwordHash}';";
                 var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email='{data.Email}' AND Password='{data.Password}';";
                 SqlCommand command = new SqlCommand(queryString, connection);
                 using (SqlDataReader reader = command.ExecuteReader())
@@ -106,7 +104,6 @@ namespace LezzetYolculugu.Controllers
             var userCreation = await Helpers.CreateUser(user.Email, user.Name, user.Surname, user.Password, userManager);
             if (((IdentityResult)userCreation["Result"]).Succeeded)
             {
-                //identityResult = await userManager.AddToRoleAsync(user, RolesRegistry.Normal);
                 user = (User)userCreation["User"];
                 var identityResult = await userManager.AddToRoleAsync(user, RolesRegistry.Normal);
                 await signInManager.SignInAsync(user, false);
