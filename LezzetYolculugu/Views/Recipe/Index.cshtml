@@ -9,7 +9,7 @@
         .recipe {
             margin: 2rem;
             min-height: 6rem;
-            max-height: 10rem;
+            max-height: 13rem;
         }
 
         .recipe-title-link, .recipe-title-link:hover, .recipe-title-link:link, .recipe-title-link:visited, .recipe-title-link:active {
@@ -51,18 +51,24 @@
                             <h5 class="card-title">@recipe.Title.ToUpper()</h5>
                             <address><i>Yazar</i>: @recipe.Author.Name @recipe.Author.Surname <i>Tarih</i>: @recipe.Date</address>
                         </div>
-                        <div class="card-text row">
+                        <div class="row">
                             <div class="col-md-8">
-                                @{
-                                    var maxLength = 75;
-                                    var length = recipe.Detail.Length >= maxLength ? maxLength : recipe.Detail.Length;
-                                    var hyphens = recipe.Detail.Length > maxLength ? "..." : "";
-                                }
-                                <p class="card-text">Tarife</p>
-                                @Html.Raw("<pre class=\"card-text\">" + recipe.Detail.Substring(0, length) + hyphens + "</pre>")
+                                <p class="card-text mb-1">Tarife</p>
+                                <hr class="mb-1 mt-0" />
                             </div>
                             <div class="col-md-4">
-                                <p class="card-text">Malzemeler</p>
+                                <p class="card-text mb-1">Malzemeler</p>
+                                <hr class="mb-1 mt-0" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            @{
+                                var maxLength = 75;
+                                var length = recipe.Detail.Length >= maxLength ? maxLength : recipe.Detail.Length;
+                                var hyphens = recipe.Detail.Length > maxLength ? "..." : "";
+                            }
+                            @Html.Raw("<pre class=\"card-text col-md-8\">" + recipe.Detail.Substring(0, length) + hyphens + "</pre>")
+                            <div class="col-md-4">
                                 <ul style="list-style-position: inside;margin: 0;padding: 0;">
                                     @foreach (var item in recipe.Ingredients.Select((ingredient, index) => new { index, ingredient }))
                                     {
