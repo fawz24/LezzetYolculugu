@@ -67,7 +67,7 @@
                                 var length = recipe.Detail.Length >= maxLength ? maxLength : recipe.Detail.Length;
                                 var hyphens = recipe.Detail.Length > maxLength ? "..." : "";
                             }
-                            @Html.Raw("<pre class=\"card-text col-md-8\">" + recipe.Detail.Substring(0, length) + hyphens + "</pre>")
+                            <pre class="card-text col-md-8">@recipe.Detail.Substring(0, length) @hyphens</pre>
                             <div class="col-md-4">
                                 <ul style="list-style-position: inside;margin: 0;padding: 0;">
                                     @foreach (var item in recipe.Ingredients.Select((ingredient, index) => new { index, ingredient }))

@@ -36,6 +36,10 @@ namespace LezzetYolculugu.Controllers
         [HttpGet]
         public IActionResult SignIn([FromQuery(Name = "ReturnUrl")] string returnUrl)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             ViewData["ReturnUrl"] = string.IsNullOrEmpty(returnUrl) == true ? "/" : returnUrl;
             return View();
         }
@@ -44,11 +48,20 @@ namespace LezzetYolculugu.Controllers
         public async Task<IActionResult> SignIn([FromQuery(Name = "ReturnUrl")] string returnUrl, 
             [Bind("Email, Password")] SignInViewModel data)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             try
             {
                 var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
-                var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email='{data.Email}' AND Password='{data.Password}';";
+                var passwordHash = Helpers.EncodePassword(data.Password);
+                var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email=@Email AND Password=@Password;";
                 SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar);
+                command.Parameters.Add("@Password", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Email"].Value = data.Email;
+                command.Parameters["@Password"].Value = passwordHash;
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     bool found = reader.Read();
@@ -66,7 +79,7 @@ namespace LezzetYolculugu.Controllers
                 ViewData["ReturnUrl"] = string.IsNullOrEmpty(returnUrl) == true ? "/" : returnUrl;
                 return View();
             }
-            if (!string.IsNullOrEmpty(returnUrl))
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }
@@ -76,18 +89,28 @@ namespace LezzetYolculugu.Controllers
         [HttpGet]
         public IActionResult SignUp()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             return View();
         }
         
         [HttpPost]
         public async Task<IActionResult> SignUp([Bind ("Name, Surname, Email, Password")] User user)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             //SignUp
             try
             {
                 var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
-                var queryString = $"SELECT Email FROM AspNetUsers WHERE Email='{user.Email}';";
+                var queryString = $"SELECT Email FROM AspNetUsers WHERE Email=@Email;";
                 SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Email"].Value = user.Email;
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     if (reader.Read())

@@ -35,9 +35,11 @@ namespace LezzetYolculugu.Controllers
 FROM ((Comments 
 INNER JOIN Recipes ON Comments.RecipeId=Recipes.Id)
 INNER JOIN AspNetUsers ON Comments.UserId=AspNetUsers.Id)
-WHERE Comments.RecipeId={id}
+WHERE Comments.RecipeId=@RecipeId
 ORDER BY Comments.Date ASC;";
             SqlCommand command = new SqlCommand(queryString, connection);
+            command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+            command.Parameters["@RecipeId"].Value = id;
             try
             {
                 using (SqlDataReader reader = await command.ExecuteReaderAsync())
@@ -85,8 +87,16 @@ ORDER BY Comments.Date ASC;";
                     var connection = dbFactory.GetConnectionWithUser(User);
                     string queryString = $@"INSERT INTO Comments (Detail, UserId, RecipeId, Date) 
 OUTPUT INSERTED.Id
-VALUES ('{newComment.Detail}', {newComment.UserId}, {newComment.RecipeId}, '{newComment.Date}');";
+VALUES (@CommentDetail, @CommentUserId, @CommentRecipeId, @CommentDate);";
                     SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.Add("@CommentDetail", System.Data.SqlDbType.NVarChar);
+                    command.Parameters["@CommentDetail"].Value = newComment.Detail;
+                    command.Parameters.Add("@CommentUserId", System.Data.SqlDbType.Int);
+                    command.Parameters["@CommentUserId"].Value = newComment.UserId;
+                    command.Parameters.Add("@CommentRecipeId", System.Data.SqlDbType.Int);
+                    command.Parameters["@CommentRecipeId"].Value = id;
+                    command.Parameters.Add("@CommentDate", System.Data.SqlDbType.DateTime);
+                    command.Parameters["@CommentDate"].Value = newComment.Date;
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         reader.Read();
@@ -127,8 +137,10 @@ VALUES ('{newComment.Detail}', {newComment.UserId}, {newComment.RecipeId}, '{new
             try
             {
                 var connection = dbFactory.GetConnectionWithUser(User);
-                string queryString = $"DELETE FROM Comments WHERE Id={id};";
+                string queryString = $"DELETE FROM Comments WHERE Id=@CommentId;";
                 SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.Add("@CommentId", System.Data.SqlDbType.Int);
+                command.Parameters["@CommentId"].Value = id;
                 deletedRows = await command.ExecuteNonQueryAsync();
             }
             catch (Exception e)

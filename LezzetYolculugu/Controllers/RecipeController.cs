@@ -72,8 +72,10 @@ namespace LezzetYolculugu.Controllers
             var connection = dbFactory.GetConnection(RolesEnum.Normal);
             var query = $@"SELECT Recipes.Id, Recipes.Title, Recipes.Detail, Recipes.Date, AspNetUsers.Id FROM Recipes
 INNER JOIN AspNetUsers ON Recipes.UserId=AspNetUsers.Id
-WHERE Recipes.Id={id}";
+WHERE Recipes.Id=@RecipeId";
             SqlCommand command = new SqlCommand(query, connection);
+            command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+            command.Parameters["@RecipeId"].Value = id;
             Recipe recipe = null;
             using (SqlDataReader reader = await command.ExecuteReaderAsync())
             {
@@ -99,8 +101,10 @@ WHERE Recipes.Id={id}";
             var units = await dbContext.Units.ToListAsync();
             query = $@"SELECT Ingredients.Id, Ingredients.Name, Ingredients.Quantity, Ingredients.UnitId FROM Ingredients
 INNER JOIN Recipes ON Ingredients.RecipeId=Recipes.Id
-WHERE Ingredients.RecipeId={id}";
+WHERE Ingredients.RecipeId=@RecipeId";
             command = new SqlCommand(query, connection);
+            command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+            command.Parameters["@RecipeId"].Value = id;
             using (SqlDataReader reader = await command.ExecuteReaderAsync())
             {
                 while (reader.Read())
@@ -152,8 +156,16 @@ WHERE Ingredients.RecipeId={id}";
                 var connection = dbFactory.GetConnectionWithUser(User);
                 string query = $@"INSERT INTO Recipes (Title, Detail, Date, UserId) 
 OUTPUT INSERTED.Id
-VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecipe.UserId});";
+VALUES (@RecipeTitle, @RecipeDetail, @RecipeDate, @RecipeUserId);";
                 SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.Add("@RecipeTitle", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@RecipeTitle"].Value = newRecipe.Title;
+                command.Parameters.Add("@RecipeDetail", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@RecipeDetail"].Value = newRecipe.Detail;
+                command.Parameters.Add("@RecipeDate", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@RecipeDate"].Value = newRecipe.Date;
+                command.Parameters.Add("@RecipeUserId", System.Data.SqlDbType.Int);
+                command.Parameters["@RecipeUserId"].Value = newRecipe.UserId;
                 int recipeId;
                 try
                 {
@@ -167,14 +179,22 @@ VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecip
                 {
                     goto error;
                 }
-                IList<string> ingredientValues = new List<string>();
+                //IList<string> ingredientValues = new List<string>();
                 foreach (var ingredient in recipe.Ingredients)
                 {
-                    ingredientValues.Add($"('{ingredient.Name}', {ingredient.Quantity}, {ingredient.UnitId}, {recipeId})");
+                    query = $@"INSERT INTO Ingredients (Name, Quantity, UnitId, RecipeId) 
+VALUES (@IngredientName, @IngredientQuantity, @IngredientUnitId, @RecipeId);";
+                    command = new SqlCommand(query, connection);
+                    command.Parameters.Add("@IngredientName", System.Data.SqlDbType.NVarChar);
+                    command.Parameters["@IngredientName"].Value = ingredient.Name;
+                    command.Parameters.Add("@IngredientQuantity", System.Data.SqlDbType.Float);
+                    command.Parameters["@IngredientQuantity"].Value = ingredient.Quantity;
+                    command.Parameters.Add("@IngredientUnitId", System.Data.SqlDbType.Int);
+                    command.Parameters["@IngredientUnitId"].Value = ingredient.UnitId;
+                    command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+                    command.Parameters["@RecipeId"].Value = recipeId;
+                    await command.ExecuteNonQueryAsync();
                 }
-                query = $"INSERT INTO Ingredients (Name, Quantity, UnitId, RecipeId) VALUES {string.Join(',', ingredientValues)};";
-                command = new SqlCommand(query, connection);
-                int insertedIngredientsCount = await command.ExecuteNonQueryAsync();
                 return RedirectToAction(nameof(Index));
             }
             error:
@@ -230,9 +250,15 @@ VALUES ('{newRecipe.Title}', '{newRecipe.Detail}', '{newRecipe.Date}', {newRecip
 
                 var connection = dbFactory.GetConnectionWithUser(User);
                 string query = $@"UPDATE Recipes
-SET Title='{recipe.Title}', Detail='{recipe.Detail}'
-WHERE Id={recipe.Id};";
+SET Title=@RecipeTitle, Detail=@RecipeDetail
+WHERE Id=@RecipeId;";
                 SqlCommand command = new SqlCommand(query, connection);
+                command.Parameters.Add("@RecipeTitle", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@RecipeTitle"].Value = recipe.Title;
+                command.Parameters.Add("@RecipeDetail", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@RecipeDetail"].Value = recipe.Detail;
+                command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+                command.Parameters["@RecipeId"].Value = recipe.Id;
                 try
                 {
                     await command.ExecuteNonQueryAsync();
@@ -259,8 +285,16 @@ WHERE Id={recipe.Id};";
                     if (ingredient == null || ingredient.Id == 0)
                     {
                         query = $@"INSERT INTO Ingredients(Name,Quantity,UnitId,RecipeId)
-VALUES('{ingredient.Name}',{ingredient.Quantity},{ingredient.UnitId},{recipe.Id});";
+VALUES(@IngredientName, @IngredientQuantity, @IngredientUnitId, @RecipeId);";
                         command = new SqlCommand(query, connection);
+                        command.Parameters.Add("@IngredientName", System.Data.SqlDbType.NVarChar);
+                        command.Parameters["@IngredientName"].Value = ingredient.Name;
+                        command.Parameters.Add("@IngredientQuantity", System.Data.SqlDbType.Float);
+                        command.Parameters["@IngredientQuantity"].Value = ingredient.Quantity;
+                        command.Parameters.Add("@IngredientUnitId", System.Data.SqlDbType.Int);
+                        command.Parameters["@IngredientUnitId"].Value = ingredient.UnitId;
+                        command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+                        command.Parameters["@RecipeId"].Value = recipe.Id;
                         try
                         {
                             await command.ExecuteNonQueryAsync();
@@ -273,9 +307,19 @@ VALUES('{ingredient.Name}',{ingredient.Quantity},{ingredient.UnitId},{recipe.Id}
                     else
                     {
                         query = $@"UPDATE Ingredients
-SET Name='{ingredient.Name}', Quantity={ingredient.Quantity}, UnitId={ingredient.UnitId}
-WHERE Id={ingredient.Id} AND RecipeId={recipe.Id};";
+SET Name=@IngredientName, Quantity=@IngredientQuantity, UnitId=@IngredientUnitId
+WHERE Id=@IngredientId AND RecipeId=@RecipeId;";
                         command = new SqlCommand(query, connection);
+                        command.Parameters.Add("@IngredientName", System.Data.SqlDbType.NVarChar);
+                        command.Parameters["@IngredientName"].Value = ingredient.Name;
+                        command.Parameters.Add("@IngredientQuantity", System.Data.SqlDbType.Float);
+                        command.Parameters["@IngredientQuantity"].Value = ingredient.Quantity;
+                        command.Parameters.Add("@IngredientUnitId", System.Data.SqlDbType.Int);
+                        command.Parameters["@IngredientUnitId"].Value = ingredient.UnitId;
+                        command.Parameters.Add("@IngredientId", System.Data.SqlDbType.Int);
+                        command.Parameters["@IngredientId"].Value = ingredient.Id;
+                        command.Parameters.Add("@RecipeId", System.Data.SqlDbType.Int);
+                        command.Parameters["@RecipeId"].Value = recipe.Id;
                         try
                         {
                             await command.ExecuteNonQueryAsync();
