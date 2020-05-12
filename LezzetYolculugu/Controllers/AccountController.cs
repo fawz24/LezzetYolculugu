@@ -28,10 +28,6 @@ namespace LezzetYolculugu.Controllers
             this.userManager = userManager;
             this.signInManager = signInManager;
         }
-        public IActionResult Index()
-        {
-            return View();
-        }
         
         [HttpGet]
         public IActionResult SignIn([FromQuery(Name = "ReturnUrl")] string returnUrl)
