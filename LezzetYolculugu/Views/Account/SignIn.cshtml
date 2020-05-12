@@ -3,6 +3,11 @@
     ViewData["Title"] = "SignIn";
 }
 
+@if (ViewData["Error"] != null)
+{
+    <p class="text-danger" id="message">@ViewData["Error"]</p>
+}
+
 <div class="text-center">
     <h1 class="display-4">Sign In</h1>
     <div class="col-md-6 offset-md-3"><hr /><br /></div>
@@ -24,3 +29,14 @@
     </form>
 </div>
 
+@section Scripts{ 
+    <script>
+        $(document).ready(function () {
+            $('input').focus(function (e) {
+                if (e.target.id === 'Password' || e.target.id === 'Email') {
+                    $('#message').attr('hidden', true);
+                }
+            })
+        });
+    </script>
+}

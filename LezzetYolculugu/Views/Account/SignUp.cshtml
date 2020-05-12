@@ -3,6 +3,11 @@
     ViewData["Title"] = "SignUp";
 }
 
+@if (ViewData["Error"] != null)
+{
+    <p class="text-danger" id="message">@ViewData["Error"]</p>
+}
+
 <div class="text-center">
     <h1 class="display-4">Sign Up</h1>
     <div class="col-md-6 offset-md-3"><hr /><br /></div>
@@ -32,3 +37,15 @@
         </div>
     </form>
 </div>
+
+@section Scripts{
+    <script>
+        $(document).ready(function () {
+            $('input').focus(function (e) {
+                if (e.target.id === 'Password' || e.target.id === 'Email' || e.target.id === 'Name' || e.target.id === 'Surname') {
+                    $('#message').attr('hidden', true);
+                }
+            })
+        });
+    </script>
+}
