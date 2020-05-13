@@ -1261,16 +1261,26 @@
               "angle": 0,
               "id": "dc30d2ef-92a3-47e9-95bb-255f76f2f78f",
               "z": 3,
-              "hasOpenThreats": false,
+              "hasOpenThreats": true,
+              "threats": [
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "description": "Malicious user provided input can be stored",
+                  "type": "Tampering",
+                  "title": "Malicious user input storage",
+                  "mitigation": "Filter, encode and validate user inputs"
+                }
+              ],
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasNoOpenThreats isInScope"
+                  "class": "element-shape hasOpenThreats isInScope"
                 },
                 "text": {
                   "text": "Add Recipe\nFunction"
                 },
                 ".element-text": {
-                  "class": "element-text hasNoOpenThreats isInScope"
+                  "class": "element-text hasOpenThreats isInScope"
                 }
               }
             },
