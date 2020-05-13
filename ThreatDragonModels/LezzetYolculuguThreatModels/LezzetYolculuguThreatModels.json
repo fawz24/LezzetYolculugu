@@ -1724,6 +1724,11 @@
           "height": 590,
           "width": 941
         }
+      },
+      {
+        "title": "Main page",
+        "thumbnail": "./public/content/images/thumbnail.jpg",
+        "id": 3
       }
     ]
   }
