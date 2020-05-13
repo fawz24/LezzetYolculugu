@@ -9,6 +9,7 @@ namespace LezzetYolculugu.Models
     {
         public int Id { get; set; }
         [Display(Name = "Ad")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Ünite adı girilmesi zorunludur")]
         public string Name { get; set; }
 
         [Display(Name = "Malzemeler")]
