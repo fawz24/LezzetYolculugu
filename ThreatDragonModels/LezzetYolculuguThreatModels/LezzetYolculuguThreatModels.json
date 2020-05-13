@@ -1363,8 +1363,8 @@
               },
               "vertices": [
                 {
-                  "x": 280,
-                  "y": 100
+                  "x": 271,
+                  "y": 85
                 }
               ],
               "id": "5282eea0-0cf5-4a9f-bc63-3881981bd7d1",
@@ -1402,8 +1402,8 @@
               },
               "vertices": [
                 {
-                  "x": 495,
-                  "y": 95
+                  "x": 483,
+                  "y": 92
                 }
               ],
               "id": "afa387c4-0f61-4ea3-9436-3227b280ae39",
@@ -1490,7 +1490,7 @@
                   "position": 0.5,
                   "attrs": {
                     "text": {
-                      "text": "flow 9",
+                      "text": "Response",
                       "font-weight": "400",
                       "font-size": "small"
                     }
@@ -1519,8 +1519,8 @@
               },
               "vertices": [
                 {
-                  "x": 486,
-                  "y": 256
+                  "x": 478,
+                  "y": 235
                 }
               ],
               "id": "91de2639-6208-45de-b7b9-257f5ccb8b36",
@@ -1529,7 +1529,7 @@
                   "position": 0.5,
                   "attrs": {
                     "text": {
-                      "text": "flow 10",
+                      "text": "Recipe insertion\nresult",
                       "font-weight": "400",
                       "font-size": "small"
                     }
@@ -1558,8 +1558,8 @@
               },
               "vertices": [
                 {
-                  "x": 716,
-                  "y": 254
+                  "x": 713,
+                  "y": 248
                 }
               ],
               "id": "eb787c2e-ec47-41d4-a952-06b4d6216edf",
@@ -1568,7 +1568,7 @@
                   "position": 0.5,
                   "attrs": {
                     "text": {
-                      "text": "flow 11",
+                      "text": "Database response",
                       "font-weight": "400",
                       "font-size": "small"
                     }
