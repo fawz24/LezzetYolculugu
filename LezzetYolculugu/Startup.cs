@@ -45,26 +45,14 @@ namespace LezzetYolculugu
             {
                 conf.LoginPath = "/Account/SignIn";
                 conf.Cookie.Name = "AuthenticationId";
-                conf.Cookie.MaxAge = TimeSpan.FromDays(1);
+                conf.Cookie.MaxAge = TimeSpan.FromMinutes(30);
             });
 
             //For markdown
             services.AddMarkdown();
 
-            //services.AddAuthorization(conf =>
-            //{
-            //    var defaultAuthBuilder = new AuthorizationPolicyBuilder();
-            //    var defaultAuthPolicy = defaultAuthBuilder
-            //        .RequireAuthenticatedUser()
-            //        .RequireRole()
-            //        .Build();
-            //    conf.DefaultPolicy = defaultAuthPolicy;
-            //});
-
             services.AddMvc(config =>
             {
-                // using Microsoft.AspNetCore.Mvc.Authorization;
-                // using Microsoft.AspNetCore.Authorization;
                 var policy = new AuthorizationPolicyBuilder()
                                  .RequireAuthenticatedUser()
                                  .Build();
@@ -77,7 +65,7 @@ namespace LezzetYolculugu
                 options.IdleTimeout = TimeSpan.FromMinutes(15);
                 options.Cookie.Name = "SessionId";
                 options.Cookie.IsEssential = true;
-                options.Cookie.MaxAge = TimeSpan.FromDays(1);
+                options.Cookie.MaxAge = TimeSpan.FromMinutes(30);
             });
 
             services.AddDbContext<LezzetYolculuguDbContext>(options =>
