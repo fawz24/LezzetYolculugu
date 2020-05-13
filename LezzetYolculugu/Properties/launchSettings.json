@@ -15,8 +15,8 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "Project": {
-      "commandName": "Project",
+    "LezzetYolculugu": {
+      "commandName": "LezzetYolculugu",
       "launchBrowser": true,
       "applicationUrl": "http://localhost:5000",
       "environmentVariables": {

@@ -1,0 +1,147 @@
+﻿@model LezzetYolculugu.Models.Recipe
+
+@{
+    ViewData["Title"] = "Edit";
+    int ingredientCounts = 1;
+}
+
+<h2>Tarife güncelle</h2>
+
+<div>
+    <a asp-action="Index">Ana sayfaya dön</a>
+</div>
+<br />
+@if (ViewData["Error"] != null)
+{
+    <p class="text-danger">@ViewData["Error"]</p>
+}
+@if (User.Identity.IsAuthenticated && (User.IsInRole(LezzetYolculugu.Data.RolesRegistry.Admin) || User.Identity.Name == Model.Author.Email))
+{
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-danger">Sil</a>
+    <hr />
+}
+<pre><i>Yazar</i>: @Model.Author.Name @Model.Author.Surname
+<i>Paylaşım tarihi</i>: @Model.Date</pre>
+<form asp-action="Edit">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="form-group">
+        <label asp-for="Title" class="control-label"></label>
+        <input asp-for="Title" class="form-control w-100" required />
+        <span asp-validation-for="Title" class="text-danger"></span>
+    </div>
+    <div class="form-group" hidden>
+        <label asp-for="Id" class="control-label"></label>
+        <input asp-for="Id" class="form-control w-100" required />
+        <span asp-validation-for="Id" class="text-danger"></span>
+    </div>
+    <div class="form-group" hidden>
+        <label asp-for="UserId" class="control-label"></label>
+        <input asp-for="UserId" class="form-control w-100" required />
+        <span asp-validation-for="UserId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Ingredients" class="control-label"></label>
+        <div id="ingredients-container">
+            @if (Model.Ingredients != null && Model.Ingredients.Count > 0)
+            {
+                {ingredientCounts = Model.Ingredients.Count;}
+                foreach (var item in Model.Ingredients.Select((ingredient, index) => new { ingredient, index }))
+                {
+                    <div class="row form-group ingredient">
+                        <div hidden>
+                            <input class="form-control" asp-for="Ingredients[item.index].Id" required />
+                        </div>
+                        <div class="col-sm-6">
+                            <input class="form-control" asp-for="Ingredients[item.index].Name" type="text" placeholder="Malzeme adı" required />
+                        </div>
+                        <div class="col-sm-3">
+                            <input class="form-control" asp-for="Ingredients[item.index].Quantity" type="number"
+                                   step="any" placeholder="Miktar" required />
+                        </div>
+                        <div class="col-sm-3">
+                            <select asp-for="Ingredients[item.index].UnitId" class="form-control"
+                                    asp-items="@(new SelectList((IEnumerable<Unit>)ViewData["Units"], "Id", "Name", item.ingredient.UnitId))"></select>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="row form-group ingredient">
+                    <div class="col-sm-6">
+                        <input class="form-control" name="Ingredients[0].Name" type="text" placeholder="Malzeme adı" required />
+                    </div>
+                    <div class="col-sm-3">
+                        <input class="form-control" name="Ingredients[0].Quantity" type="number" step="any" placeholder="Miktar" />
+                    </div>
+                    <div class="col-sm-3">
+                        <select asp-for="Ingredients[0].UnitId" class="form-control"
+                                asp-items="@(new SelectList((IEnumerable<Unit>)ViewData["Units"], "Id", "Name"))"></select>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="form-group">
+            <p class="btn btn-outline-primary" id="add-ingredient-btn">Malzeme Ekle</p>
+            <p class="btn btn-outline-danger" id="remove-ingredient-btn">Malzeme Çıkar</p>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Detail" class="control-label"></label>
+        <textarea asp-for="Detail" class="form-control" rows="17" required></textarea>
+        <span asp-validation-for="Detail" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <input type="submit" value="Kaydet" class="btn btn-success" />
+    </div>
+</form>
+
+@section Scripts{
+    <script>
+        var ingredientsCount = @(ingredientCounts);
+        $('document').ready(function () {
+            $('#add-ingredient-btn').click(function () {
+                var inputIngredientName = $('<input/>').addClass("form-control").attr({
+                    name: `Ingredients[${ingredientsCount}].Name`,
+                    type: "text",
+                    placeholder: "Malzeme adı",
+                    required: true
+                });
+                var divIngredientName = $('<div></div>').addClass("col-sm-6").append(inputIngredientName);
+                var inputIngredientQuantity = $('<input/>').addClass("form-control").attr({
+                    name: `Ingredients[${ingredientsCount}].Quantity`,
+                    type: "number",
+                    step: "any",
+                    placeholder: "Miktar",
+                    required: true
+                });
+                var divIngredientQuantity = $('<div></div>').addClass("col-sm-3").append(inputIngredientQuantity);
+                var divRow = $('<div></div>').addClass(["row", "form-group", "ingredient"])
+                    .append(divIngredientName, divIngredientQuantity, unitOptionsHtml(ingredientsCount));
+                $('#ingredients-container').append(divRow);
+                ingredientsCount += 1;
+            });
+
+            $('#remove-ingredient-btn').click(function () {
+                console.log(`remove ingredient, count: ${ingredientsCount}`);
+                if (ingredientsCount > 1) {
+                    var lastIngredient = $('.ingredient:last');
+                    console.log(lastIngredient);
+                    lastIngredient.remove();
+                    ingredientsCount -= 1;
+                }
+            });
+        });
+
+        function unitOptionsHtml(count) {
+            return `<div class="col-sm-3">
+                <select class="form-control" name="Ingredients[${count}].UnitId">
+                @foreach (var unit in (IEnumerable<Unit>)ViewData["Units"])
+                {
+                    <option value="@unit.Id">@unit.Name</option>
+                }
+                </select>
+            </div>`
+        }
+    </script>
+}

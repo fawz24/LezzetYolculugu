@@ -2,14 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using LezzetYolculugu.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using LezzetYolculugu.Data;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Westwind.AspNetCore.Markdown;
 
-namespace Project
+namespace LezzetYolculugu
 {
     public class Startup
     {
@@ -30,8 +36,53 @@ namespace Project
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
+            services.AddIdentity<User, Role>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+            }).AddEntityFrameworkStores<LezzetYolculuguDbContext>();
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.ConfigureApplicationCookie(conf =>
+            {
+                conf.LoginPath = "/Account/SignIn";
+                conf.Cookie.Name = "AuthenticationId";
+                conf.Cookie.MaxAge = TimeSpan.FromDays(1);
+            });
+
+            //For markdown
+            services.AddMarkdown();
+
+            //services.AddAuthorization(conf =>
+            //{
+            //    var defaultAuthBuilder = new AuthorizationPolicyBuilder();
+            //    var defaultAuthPolicy = defaultAuthBuilder
+            //        .RequireAuthenticatedUser()
+            //        .RequireRole()
+            //        .Build();
+            //    conf.DefaultPolicy = defaultAuthPolicy;
+            //});
+
+            services.AddMvc(config =>
+            {
+                // using Microsoft.AspNetCore.Mvc.Authorization;
+                // using Microsoft.AspNetCore.Authorization;
+                var policy = new AuthorizationPolicyBuilder()
+                                 .RequireAuthenticatedUser()
+                                 .Build();
+                config.Filters.Add(new AuthorizeFilter(policy));
+            })
+            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+
+            services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(15);
+                options.Cookie.Name = "SessionId";
+                options.Cookie.IsEssential = true;
+                options.Cookie.MaxAge = TimeSpan.FromDays(1);
+            });
+
+            services.AddDbContext<LezzetYolculuguDbContext>(options =>
+                    options.UseSqlServer(Configuration.GetConnectionString("Default")));
+            services.AddSingleton<IDatabaseFactory>(config => new DatabaseFactory(Configuration));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -46,14 +97,21 @@ namespace Project
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            app.UseMarkdown();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+            
+            app.UseAuthentication();
+            app.UseSession();
 
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    template: "{controller=Recipe}/{action=Index}/{id?}");
+                routes.MapRoute(
+                    name: "api",
+                    template: "api/{controller}/{action}/{id?}");
             });
         }
     }
