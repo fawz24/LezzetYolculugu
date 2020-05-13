@@ -10,10 +10,12 @@ namespace LezzetYolculugu.Models
     public partial class User : IdentityUser<int>
     {
         [Required]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "En az 3 ve en fazla 50 harften oluşmalı")]
         public string Name { get; set; }
         [Required]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "En az 3 ve en fazla 50 harften oluşmalı")]
         public string Surname { get; set; }
-        [Required]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Şifre zorunludur")]
         public string Password { get; set; }
         public DateTime RegistrationDate { get; set; }
 

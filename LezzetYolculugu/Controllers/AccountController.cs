@@ -28,14 +28,14 @@ namespace LezzetYolculugu.Controllers
             this.userManager = userManager;
             this.signInManager = signInManager;
         }
-        public IActionResult Index()
-        {
-            return View();
-        }
         
         [HttpGet]
         public IActionResult SignIn([FromQuery(Name = "ReturnUrl")] string returnUrl)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             ViewData["ReturnUrl"] = string.IsNullOrEmpty(returnUrl) == true ? "/" : returnUrl;
             return View();
         }
@@ -44,11 +44,24 @@ namespace LezzetYolculugu.Controllers
         public async Task<IActionResult> SignIn([FromQuery(Name = "ReturnUrl")] string returnUrl, 
             [Bind("Email, Password")] SignInViewModel data)
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    throw new Exception("The credentials provided are invalid");
+                }
                 var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
-                var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email='{data.Email}' AND Password='{data.Password}';";
+                var passwordHash = Helpers.EncodePassword(data.Password);
+                var queryString = $"SELECT Email, Password FROM AspNetUsers WHERE Email=@Email AND Password=@Password;";
                 SqlCommand command = new SqlCommand(queryString, connection);
+                command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar);
+                command.Parameters.Add("@Password", System.Data.SqlDbType.NVarChar);
+                command.Parameters["@Email"].Value = data.Email;
+                command.Parameters["@Password"].Value = passwordHash;
                 using (SqlDataReader reader = command.ExecuteReader())
                 {
                     bool found = reader.Read();
@@ -64,9 +77,9 @@ namespace LezzetYolculugu.Controllers
             {
                 ViewData["Error"] = "Girilen kullanıcı bilgilerini kontrol ediniz";
                 ViewData["ReturnUrl"] = string.IsNullOrEmpty(returnUrl) == true ? "/" : returnUrl;
-                return View();
+                return View(data);
             }
-            if (!string.IsNullOrEmpty(returnUrl))
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             {
                 return Redirect(returnUrl);
             }
@@ -76,41 +89,55 @@ namespace LezzetYolculugu.Controllers
         [HttpGet]
         public IActionResult SignUp()
         {
+            if (User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Recipe");
+            }
             return View();
         }
         
         [HttpPost]
         public async Task<IActionResult> SignUp([Bind ("Name, Surname, Email, Password")] User user)
         {
-            //SignUp
-            try
+            if (User.Identity.IsAuthenticated)
             {
-                var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
-                var queryString = $"SELECT Email FROM AspNetUsers WHERE Email='{user.Email}';";
-                SqlCommand command = new SqlCommand(queryString, connection);
-                using (SqlDataReader reader = command.ExecuteReader())
+                return RedirectToAction("Index", "Recipe");
+            }
+            //SignUp
+            if (ModelState.IsValid)
+            {
+                try
                 {
-                    if (reader.Read())
+                    var connection = dbFactory.GetConnection(RolesEnum.Anonymous);
+                    var queryString = $"SELECT Email FROM AspNetUsers WHERE Email=@Email;";
+                    SqlCommand command = new SqlCommand(queryString, connection);
+                    command.Parameters.Add("@Email", System.Data.SqlDbType.NVarChar);
+                    command.Parameters["@Email"].Value = user.Email;
+                    using (SqlDataReader reader = command.ExecuteReader())
                     {
-                        throw new Exception($"A user with the email '{user.Email}' already exist.");
+                        if (reader.Read())
+                        {
+                            throw new Exception($"A user with the email '{user.Email}' already exist.");
+                        }
                     }
                 }
+                catch (Exception e)
+                {
+                    ViewData["Error"] = $"Girilen eposta kullanılmaktadır.";
+                    return View(user);
+                }
+                var userCreation = await Helpers.CreateUser(user.Email, user.Name, user.Surname, user.Password, userManager);
+                if (((IdentityResult)userCreation["Result"]).Succeeded)
+                {
+                    user = (User)userCreation["User"];
+                    var identityResult = await userManager.AddToRoleAsync(user, RolesRegistry.Normal);
+                    await signInManager.SignInAsync(user, false);
+                    return RedirectToAction(actionName: "Index", controllerName: "Recipe");
+                }
             }
-            catch (Exception e)
-            {
-                ViewData["Error"] = $"Girilen eposta kullanılmaktadır.";
-                return View();
-            }
-            var userCreation = await Helpers.CreateUser(user.Email, user.Name, user.Surname, user.Password, userManager);
-            if (((IdentityResult)userCreation["Result"]).Succeeded)
-            {
-                user = (User)userCreation["User"];
-                var identityResult = await userManager.AddToRoleAsync(user, RolesRegistry.Normal);
-                await signInManager.SignInAsync(user, false);
-                return RedirectToAction(actionName: "Index", controllerName: "Recipe");
-            }
-            ViewData["Error"] = $"Kullanıcı oluşturulamadı.";
-            return View();
+            
+            ViewData["Error"] = $"Kullanıcı oluşturulamadı. Bilgileri kontrol ediniz";
+            return View(user);
         }
         
         [HttpGet]

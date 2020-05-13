@@ -14,9 +14,11 @@ namespace LezzetYolculugu.Models
         public DateTime Date { get; set; }
         [Required]
         [Display(Name = "Yazar ID")]
+        [Range(1, int.MaxValue)]
         public int UserId { get; set; }
         [Required]
         [Display(Name = "Tarife ID")]
+        [Range(1, int.MaxValue)]
         public int RecipeId { get; set; }
 
         [Display(Name = "Tarife")]

@@ -16,10 +16,16 @@
         <div class="form-group row">
             <label class="col-md-1 offset-md-4 text-right" asp-for="Email">Eposta</label>
             <div class="col-md-3"><input class="form-control" asp-for="Email" type="email" required /></div>
+            <div class="col-md-4 text-left">
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
         </div>
         <div class="form-group row">
             <label class="col-md-1 offset-md-4 text-right" asp-for="Password">Şifre</label>
             <div class="col-md-3"><input class="form-control" asp-for="Password" type="password" required /></div>
+            <div class="col-md-4 text-left">
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
         </div>
         <div class="form-group">
             <div class="col-md-2 offset-md-5">

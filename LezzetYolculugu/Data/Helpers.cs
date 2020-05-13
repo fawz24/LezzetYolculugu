@@ -43,7 +43,7 @@ namespace LezzetYolculugu.Data
                 Email = email,
                 Name = name,
                 Surname = surname,
-                Password = password,
+                Password = EncodePassword(password),
                 RegistrationDate = DateTime.Now,
                 UserName = email,
             };
