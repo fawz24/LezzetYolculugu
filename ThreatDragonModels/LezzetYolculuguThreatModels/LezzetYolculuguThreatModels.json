@@ -689,6 +689,14 @@
                   "mitigation": "SQL prepared statement or framework database context should be used",
                   "type": "Tampering",
                   "title": "Data alteration"
+                },
+                {
+                  "status": "Open",
+                  "severity": "Medium",
+                  "type": "Tampering",
+                  "title": "Malicious data insertion",
+                  "mitigation": "Filter , validate and encode user input",
+                  "description": "Harmful user input is potentially stored into the database for malicious intents"
                 }
               ],
               "attrs": {
@@ -1000,26 +1008,17 @@
               "angle": 0,
               "id": "028505e6-18d6-45cc-9631-ce0b2e246039",
               "z": 17,
-              "hasOpenThreats": true,
-              "threats": [
-                {
-                  "status": "Open",
-                  "severity": "Medium",
-                  "description": "Raw input (no escaping, filtering, encoding) processed by the app and returned as is to the user creates risk of browser identity theft.",
-                  "mitigation": "Filter, escape and encode user input that should be sent back to the users",
-                  "type": "Information disclosure",
-                  "title": "Identity theft"
-                }
-              ],
+              "hasOpenThreats": false,
+              "threats": [],
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasOpenThreats isInScope"
+                  "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
                   "text": "Anonymous User"
                 },
                 ".element-text": {
-                  "class": "element-text hasOpenThreats isInScope"
+                  "class": "element-text hasNoOpenThreats isInScope"
                 }
               }
             },
