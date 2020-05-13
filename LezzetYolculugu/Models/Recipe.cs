@@ -9,12 +9,15 @@ namespace LezzetYolculugu.Models
     {
         public int Id { get; set; }
         [Display(Name = "Ad")]
+        [StringLength(200, MinimumLength = 2)]
         public string Title { get; set; }
         [Display(Name = "Tarife")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Tarife zorunludur")]
         public string Detail { get; set; }
         [Display(Name = "Tarih")]
         public DateTime Date { get; set; }
         [Display(Name = "Yazar ID")]
+        [Range(1, int.MaxValue)]
         public int UserId { get; set; }
 
         [Display(Name = "Yazar")]

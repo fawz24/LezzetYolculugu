@@ -9,11 +9,16 @@ namespace LezzetYolculugu.Models
     //[Table("Users")]
     public partial class User : IdentityUser<int>
     {
+        [EmailAddress(ErrorMessage = "Hatalı eposta girildi")]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Eposta girilmesi zorunludur")]
+        public string Email { get; set; }
         [Required]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "En az 3 ve en fazla 50 harften oluşmalı")]
         public string Name { get; set; }
         [Required]
+        [StringLength(50, MinimumLength = 3, ErrorMessage = "En az 3 ve en fazla 50 harften oluşmalı")]
         public string Surname { get; set; }
-        [Required]
+        [Required(AllowEmptyStrings = false, ErrorMessage = "Şifre zorunludur")]
         public string Password { get; set; }
         public DateTime RegistrationDate { get; set; }
 
