@@ -1191,7 +1191,7 @@
         }
       },
       {
-        "title": "Add Recipe",
+        "title": "Add recipe and edit recipe",
         "thumbnail": "./public/content/images/thumbnail.jpg",
         "id": 2,
         "diagramJson": {
@@ -1261,26 +1261,16 @@
               "angle": 0,
               "id": "dc30d2ef-92a3-47e9-95bb-255f76f2f78f",
               "z": 3,
-              "hasOpenThreats": true,
-              "threats": [
-                {
-                  "status": "Open",
-                  "severity": "Medium",
-                  "description": "Malicious user provided input can be stored",
-                  "type": "Tampering",
-                  "title": "Malicious user input storage",
-                  "mitigation": "Filter, encode and validate user inputs"
-                }
-              ],
+              "hasOpenThreats": false,
               "attrs": {
                 ".element-shape": {
-                  "class": "element-shape hasOpenThreats isInScope"
+                  "class": "element-shape hasNoOpenThreats isInScope"
                 },
                 "text": {
                   "text": "Add Recipe\nFunction"
                 },
                 ".element-text": {
-                  "class": "element-text hasOpenThreats isInScope"
+                  "class": "element-text hasNoOpenThreats isInScope"
                 }
               }
             },
